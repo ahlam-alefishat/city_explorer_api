@@ -1,35 +1,65 @@
-# city_explorer_api
 
-# Project Name
+# Lab-06:city_explorer_api
 
-**Author**: Your Name Goes Here
-**Version**: 1.0.0 (increment the patch/fix version number if you make more commits past your first submission)
+#### Authors:Ahl. Alefishat
 
-## Overview
-<!-- Provide a high level overview of what this application is and why you are building it, beyond the fact that it's an assignment for this class. (i.e. What's your problem domain?) -->
+## :Overview
+Provide the user data about the area of interest to him when he  enter the n.e of a location.
 
 ## Getting Started
-<!-- What are the steps that a user must take in order to build this app on their own machine and get it running? -->
+- Make a new repository.
+- Clone repository.
+- From root directory, npm install
+- create .env file and set the port number
+- node server.js
+-  set the port number to the localhost
 
-## Architecture
-<!-- Provide a detailed description of the application design. What technologies (languages, libraries, etc) you're using, and any other relevant design information. -->
+## Architecture:
+- express
+- cors
+- dotenv
+- NodeJS
 
-## Change Log
-<!-- Use this area to document the iterative changes made to your application as each feature is successfully implemented. Use time stamps. Here's an examples:
+## Change log
+05-04-2020 - Initial set up, render weather data for location
 
-01-01-2001 4:59pm - Application now has a fully-functional express server, with a GET route for the location resource.
+##  #1 Repository Setup
 
-## Credits and Collaborations
-<!-- Give credit (and a link) to other people or resources that helped you build this application. -->
--->
+Estimate of time needed to complete: 30 minutes..
+
+Start time: 01:00
+
+Finish time: 01:30
+
+Actual time needed to complete:30 minutes.
+
+## feature: #2 Locations
+
+Estimate of time needed to complete: 1:00.
+
+Start time: 01:30
+
+Finish time: 3:00.
+
+Actual time needed to complete: 1:30.
 
 
-Number and name of feature: ________________________________
+## feature: #3 Weather
 
-Estimate of time needed to complete: _____
+Estimate of time needed to complete: 1:00
 
-Start time: _____
+Start time: 03:30.
 
-Finish time: _____
+Finish time: 4:20.
 
-Actual time needed to complete: _____
+Actual time needed to complete: 00:50
+
+## feature: #4 Errors
+
+Estimate of time needed to complete: 00:30 minutes
+
+Start time: 4:25.
+
+Finish time: 4:40
+
+Actual time needed to complete: 00:15

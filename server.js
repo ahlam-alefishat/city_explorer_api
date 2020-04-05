@@ -1,8 +1,10 @@
 'use strict';
+require('dotenv').config();
 
 const express = require('express');
+
 const cors = require('cors');
-require('dotenv').config();
+
 
 const PORT = process.env.PORT || 3000;
 
@@ -10,9 +12,7 @@ const server = express();
 
 server.use(cors());
 
-server.listen(PORT, () => {
-    console.log(`Listening on PORT${PORT}`);
-})
+
 
 
 server.get('/', (request, response) => {
@@ -29,7 +29,7 @@ server.get('/location', (request, response) => {
 })
 
 function Location (city,geoData) {
-    this.search_query =  geoData[0].display_name.replace(/ .*/,'');
+    this.search_query =  geoData[0].display_name;
     this.formatted_query = geoData[0].display_name;
     this.latitude = geoData[0].lat;
     this.longitude = geoData[0].lon;
@@ -37,10 +37,35 @@ function Location (city,geoData) {
 
 
 
+ let fullResult=[];
+server.get('/weather', (request, response) => {
+    const weatherData = require('./data/weather.json');
+    const cityName = request.query.city_name;
+   
+    weatherData.data.forEach((val) => {
+        let description = val.weather.description;
+        let date = val.valid_date;
+        let weather= new weatherForecast(description, date);
+        fullResult.push(weather);
+    })
+    response.send(fullResult);
+
+})
+function weatherForecast(description, date) {
+    this.description = description;
+    this.date=date; 
+}
+
+
+
+
+server.listen(PORT, () => {
+    console.log(`Listening on PORT${PORT}`);
+})
 server.use('*', (request, response) => {
-    response.status(404).send('NOT FOUND');
+    response.status(404).send(' PLEASE TRY AGAIN');
 });
 
-server.use((error, request, response) => {
-    response.status(500).send(error);
+server.use((request, response) => {
+    response.status(500).send("Sorry, something went wrong");
 })

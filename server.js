@@ -50,6 +50,7 @@ server.get('/weather', (request, response) => {
     })
     response.send(fullResult);
 
+
 })
 function weatherForecast(description, date) {
     this.description = description;
@@ -63,9 +64,6 @@ server.listen(PORT, () => {
     console.log(`Listening on PORT${PORT}`);
 })
 server.use('*', (request, response) => {
-    response.status(404).send(' PLEASE TRY AGAIN');
+    response.status(500).send(' Sorry, something went wrong');
 });
 
-server.use((request, response) => {
-    response.status(500).send("Sorry, something went wrong");
-})

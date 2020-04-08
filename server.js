@@ -8,7 +8,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
-const pg=require('pg');
+const pg = require('pg');
 
 
 //Application Dependencies
@@ -22,6 +22,10 @@ app.get('/', (request, response) => {
   response.send('WELCOME TO THE HOME PAGE! ');
 })
 
+function errorHandler(error, request, response) {
+  response.status(500).send(error);
+}
+
 
 //Route Definitions 
 app.get('/location', locationHandler);
@@ -32,13 +36,6 @@ app.get('/trails', trailsHandler);
 //
 function locationHandler(request, response) {
   const city = request.query.city;
-  let SQL = 'SELECT * FROM locations';
-    client.query(SQL)
-    .then(results =>{
-        response.status(200).json(results.rows);
-    })
-    .catch (error => errorHandler(error));
-
   getLocation(city)
     .then(locationData => response.status(200).json(locationData));
 }
@@ -46,18 +43,42 @@ function locationHandler(request, response) {
 
 let lat;
 let lon;
+let formatted_Query;
+
 function getLocation(city) {
-  let key = process.env.GEOCODE_API_KEY;
-  const url = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
 
+  let SQL = 'SELECT * FROM locations WHERE search_query=$1;';
+  let safeValues = [city];
 
-  return superagent.get(url)
-    .then(geoData => {
-      const locationData = new Location(city, geoData.body);
-     lat= locationData.latitude;
-     lon=locationData.longitude;
-      return locationData;
+  return client.query(SQL, safeValues)
+  
+    .then(results => {
+      console.log("/////////////////////////////",results.rows.length);
+      if (results.rows.length) { 
+        console.log("----------------------------",results.rows[0]);
+        return results.rows[0]; }
+      else {
+        console.log("-+++++++++++++++++++++++++++++++++++++++++");
+        let key = process.env.GEOCODE_API_KEY;
+        const url = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
+        return superagent.get(url)
+          .then(geoData => {
+            const locationData = new Location(city, geoData.body);
+            formatted_Query = locationData.formatted_query;
+            lat = locationData.latitude;
+            lon = locationData.longitude;
+            let SQL = 'INSERT INTO locations (search_query,formatted_address,latitude,longitude) VALUES($1,$2,$3,$4);';
+            let safeValues = [city, formatted_Query, lat, lon];
+            return client.query(SQL, safeValues)
+              .then(results => {
+                results.rows[0];
+              })
+            })
+            
+          }
     })
+    .catch(error => errorHandler(error));
+    
 }
 
 function Location(city, geoData) {
@@ -103,31 +124,28 @@ function Weather(day) {
 
 
 function trailsHandler(request, response) {
-  console.log('-----------------------------', lat,lon);
-  getTrails()
-    .then(trailsData => response.status(200).json(trailsData));
-
+  lat=request.query.lat;
+  lon=request.query.lon;
+  getTrails(lat,lon)
+    .then(trailsData =>{ response.status(200).json(trailsData);
+    })
 }
 
 
-// let trails = [];
-function getTrails() {
+function getTrails(lat,lon) {
   let key = process.env.TRAILS_API_KEY;
   const url = `https://www.hikingproject.com/data/get-trails?lat=${lat}&lon=${lon}&maxDistance=10&key=${key}`;
-  return superagent.get(url)
+   return superagent.get(url)
     .then(trailsData => {
-      // console.log('/////////////////////////', trailsData);
       trailsData.body.trails.map(val => {
-
         return new Trail(val);
-
-        // trails.push(trail);
       });
+      return trailsData;
     });
 }
 
 function Trail(val) {
-  // this.id = val.id;
+  this.id = val.id;
   this.name = val.name;
   this.location = val.location;
   this.length = val.length;
@@ -136,18 +154,15 @@ function Trail(val) {
   this.summary = val.summary;
   this.trail_url = val.url;
   this.conditions = val.conditionStatus;
-  // this.condition_date = val.conditionDate.substring(0, 11);
-  // this.condition_time = val.conditionDate.substring(11);
+  this.condition_date = val.conditionDate.substring(0, 11);
+  this.condition_time = val.conditionDate.substring(11);
 }
 
-function errorHandler(error, request, response) {
-  response.status(500).send(error);
-}
 
 
 client.connect()
-.then(()=>{
-app.listen(PORT, () => {
-  console.log(`Listening on PORT${PORT}`);
-});
-})
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Listening on PORT${PORT}`);
+    });
+  })

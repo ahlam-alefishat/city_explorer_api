@@ -8,13 +8,15 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
+const pg=require('pg');
 
 
 //Application Dependencies
 const PORT = process.env.PORT;
 const app = express();
 app.use(cors());
-
+const client = new pg.Client(process.env.DATABASE_URL);
+// client.connect();
 
 app.get('/', (request, response) => {
   response.send('WELCOME TO THE HOME PAGE! ');
@@ -30,9 +32,18 @@ app.get('/trails', trailsHandler);
 //
 function locationHandler(request, response) {
   const city = request.query.city;
+  let SQL = 'SELECT * FROM locations';
+    client.query(SQL)
+    .then(results =>{
+        response.status(200).json(results.rows);
+    })
+    .catch (error => errorHandler(error));
+
   getLocation(city)
     .then(locationData => response.status(200).json(locationData));
 }
+
+
 let lat;
 let lon;
 function getLocation(city) {
@@ -102,7 +113,6 @@ function trailsHandler(request, response) {
 // let trails = [];
 function getTrails() {
   let key = process.env.TRAILS_API_KEY;
-  // https://www.hikingproject.com/data/get-trails?lat=40.0274&lon=-105.2519&maxDistance=10&key=
   const url = `https://www.hikingproject.com/data/get-trails?lat=${lat}&lon=${lon}&maxDistance=10&key=${key}`;
   return superagent.get(url)
     .then(trailsData => {
@@ -130,7 +140,14 @@ function Trail(val) {
   // this.condition_time = val.conditionDate.substring(11);
 }
 
+function errorHandler(error, request, response) {
+  response.status(500).send(error);
+}
 
+
+client.connect()
+.then(()=>{
 app.listen(PORT, () => {
   console.log(`Listening on PORT${PORT}`);
 });
+})
